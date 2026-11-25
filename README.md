@@ -61,7 +61,7 @@ A connectivity smoke test from the development sandbox received order-book paylo
 
 ## Market-list sources
 
-The picker reads public listing endpoints directly in the browser and keeps only active USDT spot pairs where the API exposes a status field. Binance uses its lightweight public ticker/price list. The catalog is cached in local storage for four hours; a manual refresh re-queries the sources. A failed source does not erase other venues' results.
+The picker reads public listing endpoints directly in the browser. For sources that expose a trading status, it keeps active USDT spot pairs; Binance's lightweight ticker/price endpoint supplies symbols but does not expose an explicit trading-status field. The catalog is cached in local storage for four hours; a manual refresh re-queries the sources. A failed source does not erase other venues' results.
 
 - Binance: [`GET /api/v3/ticker/price`](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker)
 - Bybit: [`GET /v5/market/instruments-info?category=spot`](https://bybit-exchange.github.io/docs/v5/market/instrument)
