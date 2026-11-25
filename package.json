@@ -1,0 +1,21 @@
+{
+  "name": "cross-exchange-slippage",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Browser-only comparison of spot order-book execution cost across exchanges",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -p tsconfig.json && vite build",
+    "check": "tsc -p tsconfig.json && tsx --test tests/*.test.ts && vite build"
+  },
+  "keywords": ["orderbook", "slippage", "vwap", "crypto-market-data", "spot", "websocket", "no-backend"],
+  "license": "MIT",
+  "engines": { "node": ">=20" },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vite": "^8.3.8"
+  }
+}
