@@ -134,7 +134,7 @@ export function startFreshnessMonitor(states: Record<VenueId, VenueState>, updat
   return setInterval(() => {
     const now = Date.now();
     for (const [id, state] of Object.entries(states) as [VenueId, VenueState][]) {
-      if (state.book && state.state !== "unsupported") update(id, now - state.book.receivedAt > 5000 ? "stale" : "live");
+      if (state.book && state.state === "live" && now - state.book.receivedAt > 5000) update(id, "stale");
     }
   }, 1000);
 }

@@ -103,7 +103,7 @@ function connectFeeds(): void {
   manager.connect(symbol);
 }
 function eligibleBooks(): Partial<Record<VenueId, OrderBook>> {
-  return Object.fromEntries(VENUES.flatMap(v => validBook(states[v.id].book) ? [[v.id, states[v.id].book!]] : [])) as Partial<Record<VenueId, OrderBook>>;
+  return Object.fromEntries(VENUES.flatMap(v => states[v.id].state !== "unsupported" && validBook(states[v.id].book) ? [[v.id, states[v.id].book!]] : [])) as Partial<Record<VenueId, OrderBook>>;
 }
 function stateLabel(state: VenueState["state"]): string {
   const key = state === "live" ? "live" : state === "stale" ? "stale" : state === "unsupported" ? "unsupported" : state === "reconnecting" ? "reconnecting" : "connecting";
