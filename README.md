@@ -48,7 +48,7 @@ The app uses public snapshot/depth channels and does not build a full, sequence-
 | Venue | Browser endpoint and channel | Requested book |
 | --- | --- | --- |
 | Binance Spot | `stream.binance.com:9443/ws`, `@depth20@100ms` | Partial depth, up to 20 levels |
-| Bybit Spot | V5 public Spot, `orderbook.50.SYMBOL` | Snapshot/delta topic; initial snapshot is displayed |
+| Bybit Spot | V5 public Spot, `orderbook.50.SYMBOL` | 50-level snapshot merged with level deltas |
 | OKX Spot | V5 public, `books5` | Five levels |
 | Bitget Spot | V2 public, `books5` | Five-level snapshots |
 | Gate Spot | V4, `spot.order_book` | 20-level updates at 100 ms |
@@ -64,7 +64,9 @@ npm run check  # TypeScript, unit tests, and production build
 npm run build
 ```
 
-The tests cover VWAP/fee arithmetic, partial depth, freshness validation, notional sampling, symbol mapping, and approximate crossover detection. They do not simulate exchange execution or certify browser connectivity in every region.
+The tests cover VWAP/fee arithmetic, partial depth, freshness validation, notional sampling, symbol mapping, Bybit delta merging, and approximate crossover detection. They do not simulate exchange execution or certify browser connectivity in every region.
+
+The live demo is published from the `gh-pages` branch. See [deployment notes](docs/deployment.md) to publish a build update.
 
 ## Exchange documentation
 
