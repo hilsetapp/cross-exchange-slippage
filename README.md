@@ -9,11 +9,13 @@ Depthline is an indicative market-data analysis tool, not an execution venue, ar
 ## What it does
 
 - Streams public spot books from **Binance, Bybit, OKX, Bitget, and Gate**.
+- Searches the union of active **USDT spot pairs** discovered from the five exchange market catalogs. Each result shows which venues list the pair; catalog failures are reported, and a manual symbol can still be tried.
+- Saves favorite markets locally and supports a persistent dark theme.
 - Compares the visible book for a base symbol against its **USDT** spot market.
 - Lets you model **buy base** or **sell base**, choose a quote-notional size from 10 to 100,000 USDT, and set a taker-fee assumption per venue.
 - Sweeps the visible levels to estimate filled quantity, gross quote, quote-denominated fee, fee-adjusted average price, and net cost relative to the median midpoint of fresh books.
 - Draws a live, logarithmic size curve and marks approximate changes in the lowest-cost venue when the curves cross.
-- Shows live/stale/retrying/unavailable status, last-update age, best bid/ask, and partial-fill coverage for each exchange.
+- Shows live/stale/retrying/unavailable status, last-update age, best bid/ask, and partial-fill coverage for each exchange. A feed that returns no book is marked unavailable after 12 seconds rather than spinning forever.
 - Supports English and Russian; settings can be shared in the URL.
 
 ## Start locally
@@ -23,11 +25,11 @@ npm install
 npm run dev
 ```
 
-Open the URL printed by Vite (usually `http://localhost:5173`). The market feeds connect directly from the browser to public exchange WebSocket endpoints. If a venue cannot be reached from your network or region, its status will reflect that; the other feeds and analysis remain available.
+Open the URL printed by Vite (usually `http://localhost:5173`). The market catalog and book feeds connect directly from the browser to public exchange endpoints. Market symbols are cached in local storage for four hours; use **Refresh market list** to query again. Catalog and WebSocket access may vary by network or region, so the picker reports partial catalog availability and the feed panel reports per-venue state.
 
 ## How to read the numbers
 
-- Enter **BTC**, **SOL**, or a base symbol such as **SOLUSDT**. The quote currency is USDT at every venue. Symbols with exchange-specific aliases or non-USDT quotes are not translated automatically.
+- The searchable picker merges USDT spot listings from the five public market catalogs, labels every pair with its listing venues, and lets you save favorites. It is the **union** of available lists, not only symbols shared by all venues. If an exchange catalog is blocked, that source is marked and its listing coverage is unknown. You can still try a base symbol such as **BTC** or **SOLUSDT** manually. The quote is USDT; non-USDT pairs and exchange-specific aliases are not translated automatically.
 - The dollar sign is a compact display for the **USDT quote amount**; it does not convert USDT into USD.
 - For a selected notional `N`, the target base quantity is `N / reference midpoint`. Each book is swept from the best ask (buy) or best bid (sell) until that quantity is filled or the received visible levels run out.
 - Fees are applied as a percentage of quote notional: `gross quote × fee %`. This is an editable **assumption**, not a live account-specific fee lookup. Fee-token discounts, VIP tier, rebates, and fee-asset rounding are not modeled.
@@ -56,6 +58,16 @@ The app uses public snapshot/depth channels and does not build a full, sequence-
 See the [official exchange documentation](#exchange-documentation) for current channel and connectivity requirements. Bybit's initial 50-level snapshot is merged with its documented price-level deltas, including zero-quantity deletions; the displayed book is capped to those subscribed 50 levels and is not a complete exchange book. OKX/Bitget/Gate snapshots are consumed as provided. The app reports **browser receipt age**, not guaranteed exchange-side latency.
 
 A connectivity smoke test from the development sandbox received order-book payloads from Bybit, OKX, Bitget, and Gate. Binance returned an HTTP 451 handshake response from that test network. This is not a browser-wide verdict: exchange access can depend on network, region, and policy. The app intentionally exposes live connection state rather than claiming that every venue works everywhere.
+
+## Market-list sources
+
+The picker reads public listing endpoints directly in the browser and keeps only active USDT spot pairs where the API exposes a status field. Binance uses its lightweight public ticker/price list. The catalog is cached in local storage for four hours; a manual refresh re-queries the sources. A failed source does not erase other venues' results.
+
+- Binance: [`GET /api/v3/ticker/price`](https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-price-ticker)
+- Bybit: [`GET /v5/market/instruments-info?category=spot`](https://bybit-exchange.github.io/docs/v5/market/instrument)
+- OKX: [`GET /api/v5/public/instruments?instType=SPOT`](https://my.okx.com/docs-v5/en/#rest-api-public-data-get-instruments)
+- Bitget: [Classic Spot public symbols](https://bitgetlimited.github.io/apidoc/en/spot/#get-symbols)
+- Gate: [Spot currency pairs](https://www.gate.com/docs/developers/apiv4/en/#list-all-currency-pairs)
 
 ## Development
 

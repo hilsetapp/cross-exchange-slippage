@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { executeBook, findBreakEvens, makeNotionalPoints, midpoint, validBook } from "../src/math.js";
 import { normalizeBaseSymbol, venueSymbol } from "../src/venues.js";
 import { mergeBybitDelta } from "../src/feeds.js";
+import { parseMarketBases } from "../src/marketCatalog.js";
 import type { OrderBook, VenueCurve } from "../src/types.js";
 
 const book: OrderBook = {
@@ -69,6 +70,27 @@ test("Bybit deltas update prices, delete zero-size levels, sort, and cap depth",
   assert.deepEqual(merged.bids, [[100, 1], [98, 2], [97, 3]]);
   assert.deepEqual(merged.asks, [[101, 4], [102, 2]]);
   assert.equal(merged.sequence, 11);
+});
+
+test("catalog parsers keep active USDT spot pairs and exclude other quotes or states", () => {
+  assert.deepEqual(parseMarketBases("binance", [{ symbol: "BTCUSDT" }, { symbol: "ETHBTC" }]), ["BTC"]);
+  assert.deepEqual(parseMarketBases("bybit", { result: { list: [
+    { baseCoin: "BTC", quoteCoin: "USDT", status: "Trading" },
+    { baseCoin: "BAD", quoteCoin: "USDC", status: "Trading" },
+    { baseCoin: "HALT", quoteCoin: "USDT", status: "Settling" }
+  ] } }), ["BTC"]);
+  assert.deepEqual(parseMarketBases("okx", { data: [
+    { baseCcy: "SOL", quoteCcy: "USDT", state: "live" },
+    { baseCcy: "BTC", quoteCcy: "USDC", state: "live" }
+  ] }), ["SOL"]);
+  assert.deepEqual(parseMarketBases("bitget", { data: [
+    { baseCoin: "XRP", quoteCoin: "USDT", status: "online" },
+    { baseCoin: "OLD", quoteCoin: "USDT", status: "offline" }
+  ] }), ["XRP"]);
+  assert.deepEqual(parseMarketBases("gate", [
+    { base: "DOGE", quote: "USDT", trade_status: "tradable" },
+    { base: "ETC", quote: "BTC", trade_status: "tradable" }
+  ]), ["DOGE"]);
 });
 
 test("break-even detects a change in the lowest-cost venue", () => {

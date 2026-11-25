@@ -64,9 +64,10 @@ export class FeedManager {
   private symbol = "BTC";
   constructor(private readonly callback: VenueCallback) {}
 
-  connect(symbol: string): void {
+  connect(symbol: string, venues: VenueId[] = feeds.map(feed => feed.id)): void {
     this.disconnect(); this.stopped = false; this.symbol = symbol; this.currentBooks.clear();
-    for (const feed of feeds) this.open(feed);
+    const selected = new Set(venues);
+    for (const feed of feeds) if (selected.has(feed.id)) this.open(feed);
   }
   disconnect(): void {
     this.stopped = true;
@@ -83,7 +84,12 @@ export class FeedManager {
     try {
       const ws = new WebSocket(feed.url); this.sockets.set(feed.id, ws);
       let heartbeat: ReturnType<typeof setInterval> | undefined;
+      let bookTimeout: ReturnType<typeof setTimeout> | undefined;
+      let gotBook = false;
       let errorSeen = false;
+      bookTimeout = setTimeout(() => {
+        if (!gotBook && this.sockets.get(feed.id) === ws) this.callback(feed.id, { state: "unsupported", message: "No book received after 12s" });
+      }, 12_000);
       ws.onopen = () => {
         if (this.stopped || this.sockets.get(feed.id) !== ws) return;
         this.reconnects.set(feed.id, 0); feed.open(ws, symbol);
@@ -97,6 +103,7 @@ export class FeedManager {
         let message: any;
         try { message = JSON.parse(String(event.data)); } catch { return; }
         if (message?.event === "error" || (message?.code && message?.msg)) {
+          if (bookTimeout) clearTimeout(bookTimeout);
           this.callback(feed.id, { state: "unsupported", message: String(message.msg ?? message.code).slice(0, 120) }); return;
         }
         const incoming = feed.parse(message, symbol);
@@ -109,6 +116,8 @@ export class FeedManager {
           book = mergeBybitDelta(previous, incoming);
         }
         if (book.bids.length && book.asks.length) {
+          gotBook = true;
+          if (bookTimeout) clearTimeout(bookTimeout);
           this.currentBooks.set(feed.id, book);
           this.callback(feed.id, { state: "live", book, message: undefined });
         }
@@ -116,6 +125,7 @@ export class FeedManager {
       ws.onerror = () => { errorSeen = true; this.callback(feed.id, { state: "reconnecting", message: "Connection blocked or unavailable" }); };
       ws.onclose = event => {
         if (heartbeat) clearInterval(heartbeat);
+        if (bookTimeout) clearTimeout(bookTimeout);
         if (this.sockets.get(feed.id) !== ws) return;
         this.sockets.delete(feed.id);
         if (this.stopped) return;
