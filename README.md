@@ -6,6 +6,10 @@
 
 Depthline is an indicative market-data analysis tool, not an execution venue, arbitrage bot, or promise of fill quality.
 
+<p align="center">
+  <img src="assets/demo.gif" alt="Depthline demo: search USDT markets, compare live order-book curves, and switch to dark mode" width="100%">
+</p>
+
 ## What it does
 
 - Streams public spot books from **Binance, Bybit, OKX, Bitget, and Gate**.
