@@ -152,9 +152,9 @@ function renderMarketPicker(refreshing = false): void {
 
   let markets = catalog.list(marketQuery);
   const normalizedQuery = normalizeBaseSymbol(marketQuery);
-  if (normalizedQuery && catalog.supports(normalizedQuery) && !markets.some(item => item.base === normalizedQuery)) {
+  if (normalizedQuery && catalog.supports(normalizedQuery)) {
     const exact = catalog.list().find(item => item.base === normalizedQuery);
-    if (exact) markets.unshift(exact);
+    if (exact) markets = [exact, ...markets.filter(item => item.base !== normalizedQuery)];
   }
   if (favoriteFilter) markets = markets.filter(item => favorites.has(item.base));
   const visible = markets.slice(0, 80);
