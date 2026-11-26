@@ -136,10 +136,11 @@ function renderMarketPicker(refreshing = false): void {
   input.setAttribute("aria-expanded", String(marketOpen));
   const allSources = VENUES.map(v => catalog.states[v.id]);
   const done = allSources.filter(s => s.phase === "ready" || s.phase === "cached" || s.phase === "error").length;
+  const available = allSources.filter(s => s.phase === "ready" || s.phase === "cached").length;
   const errors = allSources.filter(s => s.phase === "error").length;
   const count = catalog.markets.size;
   const summary = document.querySelector<HTMLSpanElement>("#market-summary")!;
-  summary.textContent = count ? `${number(count, 0)} ${tNow("marketCount")} · ${done}/5` : errors === 5 ? tNow("catalogPartial") : tNow("catalogLoading");
+  summary.textContent = count ? `${number(count, 0)} ${tNow("marketCount")} · ${available}/5` : errors === 5 ? tNow("catalogPartial") : tNow("catalogLoading");
   summary.classList.toggle("has-errors", errors > 0);
   const refresh = document.querySelector<HTMLButtonElement>("#market-refresh")!;
   refresh.disabled = refreshing || allSources.some(s => s.phase === "loading");
